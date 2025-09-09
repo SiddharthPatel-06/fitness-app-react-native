@@ -1,0 +1,31 @@
+{
+  "expo": {
+    "scheme": "acme",
+    "userInterfaceStyle": "automatic",
+    "orientation": "default",
+    "web": {
+      "output": "static"
+    },
+    "plugins": [
+      [
+        "expo-router",
+        {
+          "origin": "https://n"
+        }
+      ]
+    ],
+    "name": "fit-app",
+    "slug": "fit-app",
+    "extra": {
+      "router": {
+        "origin": "https://n"
+      },
+      "eas": {
+        "projectId": "0ff4334d-c46c-448c-9ba8-6c374cf93f3a"
+      }
+    },
+    "android": {
+      "package": "com.siddharth.fitapp"
+    }
+  }
+}
