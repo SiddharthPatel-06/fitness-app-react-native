@@ -15,6 +15,8 @@ module.exports = function (api) {
           allowUndefined: true, // allows missing env vars without crashing
         },
       ],
+      "react-native-worklets/plugin",
+      "react-native-reanimated/plugin",
     ],
   };
 };

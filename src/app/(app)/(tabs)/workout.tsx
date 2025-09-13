@@ -1,4 +1,4 @@
-// app/(app)/(tabs)/workout.tsx
+// app/(tabs)/workout.tsx
 import {
   SafeAreaView,
   Text,
@@ -9,9 +9,20 @@ import {
 import { useRouter } from "expo-router";
 import React from "react";
 import { Ionicons } from "@expo/vector-icons";
+import { useWorkout } from "../../../context/WorkoutContext";
 
 const Workout = () => {
   const router = useRouter();
+  const { state, startWorkout } = useWorkout();
+
+  const handleStart = () => {
+    startWorkout();
+    router.push("/active-workout");
+  };
+
+  const handleContinue = () => {
+    router.push("/active-workout");
+  };
 
   return (
     <>
@@ -36,26 +47,51 @@ const Workout = () => {
               </View>
               <View className="flex-1">
                 <Text className="text-lg font-semibold text-black">
-                  Start Workout
+                  {state.isActive ? "Continue Workout" : "Start Workout"}
                 </Text>
                 <Text className="text-sm text-gray-500">
-                  Begin your training session
+                  {state.isActive
+                    ? state.isPaused 
+                      ? "Resume your paused session" 
+                      : "Continue your active session"
+                    : "Begin your training session"}
                 </Text>
               </View>
-              <Text className="bg-green-200 py-1 px-3 rounded-xl text-xs text-green-700 font-medium">
-                Ready
+              <Text className={`py-1 px-3 rounded-xl text-xs font-medium ${
+                state.isActive 
+                  ? state.isPaused 
+                    ? "bg-yellow-200 text-yellow-700" 
+                    : "bg-green-200 text-green-700"
+                  : "bg-gray-200 text-gray-700"
+              }`}>
+                {state.isActive 
+                  ? state.isPaused ? "Paused" : "In Progress" 
+                  : "Ready"}
               </Text>
             </View>
 
-            <TouchableOpacity
-              className="bg-blue-600 py-4 mx-2 rounded-xl items-center"
-              onPress={() => router.push("/active-workout")}
-              activeOpacity={0.8}
-            >
-              <Text className="text-white font-semibold text-lg">
-                ▶ Start Workout
-              </Text>
-            </TouchableOpacity>
+            {/* Show different button */}
+            {state.isActive ? (
+              <TouchableOpacity
+                className="bg-blue-600 py-4 mx-2 rounded-xl items-center"
+                onPress={handleContinue}
+                activeOpacity={0.8}
+              >
+                <Text className="text-white font-semibold text-lg">
+                  {state.isPaused ? "⏸ Continue Workout" : "▶ Resume Workout"}
+                </Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                className="bg-blue-600 py-4 mx-2 rounded-xl items-center"
+                onPress={handleStart}
+                activeOpacity={0.8}
+              >
+                <Text className="text-white font-semibold text-lg">
+                  ▶ Start Workout
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
         </View>
       </SafeAreaView>

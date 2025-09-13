@@ -1,3 +1,4 @@
+// app/(app)/active-workout.tsx
 import React, { useState, useEffect } from "react";
 import {
   SafeAreaView,
@@ -9,27 +10,15 @@ import {
   Modal,
   ActivityIndicator,
   ScrollView,
+  Alert,
+  Image,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { client } from "../../lib/sanity/client";
 import { useAuth } from "@clerk/clerk-expo";
-import { Alert } from "react-native";
-
-// Define types
-type Set = {
-  id: string;
-  reps: string; // string while typing
-  weight: string; // string while typing
-  completed: boolean;
-};
-
-type Exercise = {
-  id: string;
-  name: string;
-  _id?: string;
-  sets: Set[];
-};
+import { useKeepAwake } from "expo-keep-awake";
+import { useWorkout } from "../../context/WorkoutContext";
 
 type SanityExercise = {
   _id: string;
@@ -41,8 +30,7 @@ type SanityExercise = {
   isActive: boolean;
 };
 
-// Save workout function
-const saveWorkout = async (workoutData: any) => {
+const saveWorkoutToSanity = async (workoutData: any) => {
   const { exercises, duration, userId } = workoutData;
 
   const doc = {
@@ -56,8 +44,8 @@ const saveWorkout = async (workoutData: any) => {
         _ref: exercise._id || exercise.id,
       },
       sets: exercise.sets
-        .filter((set) => set.completed)
-        .map((set) => ({
+        .filter((set: any) => set.completed)
+        .map((set: any) => ({
           reps: parseInt(set.reps) || 0,
           weight: parseInt(set.weight) || 0,
           weightUnit: "kg",
@@ -65,144 +53,9 @@ const saveWorkout = async (workoutData: any) => {
     })),
   };
 
-  try {
-    const result = await client.create(doc);
-    return result;
-  } catch (error) {
-    console.error("Error saving workout:", error);
-    throw error;
-  }
+  return client.create(doc);
 };
 
-// SetItem Component
-const SetItem = ({
-  set,
-  index,
-  onUpdate,
-}: {
-  set: Set;
-  index: number;
-  onUpdate: (updates: Partial<Set>) => void;
-}) => {
-  return (
-    <View className="flex-row items-center py-3 px-4">
-      <Text className="text-gray-800 w-6 font-medium text-center">
-        {index + 1}
-      </Text>
-
-      <View className="flex-1 flex-row items-center ml-4">
-        <View className="flex-1 items-center">
-          <Text className="text-gray-500 text-xs mb-1">Reps</Text>
-          <TextInput
-            className="text-center text-base w-16 border border-gray-300 rounded text-black bg-white"
-            keyboardType="numeric"
-            value={String(set.reps)}
-            onChangeText={(text) => onUpdate({ reps: text })}
-            style={{
-              height: 40, // fixed height (40px)
-              textAlignVertical: "center", // vertically center text
-              paddingVertical: 0, // remove default vertical padding
-            }}
-          />
-        </View>
-
-        <View className="flex-1 items-center mx-4">
-          <Text className="text-gray-500 text-xs mb-1">Weight (kg)</Text>
-          <TextInput
-            className="text-center text-base w-16 border border-gray-300 rounded text-black bg-white"
-            keyboardType="numeric"
-            value={String(set.weight)}
-            onChangeText={(text) => onUpdate({ weight: text })}
-            style={{
-              height: 40,
-              textAlignVertical: "center",
-              paddingVertical: 0,
-            }}
-          />
-        </View>
-      </View>
-
-      <TouchableOpacity
-        className={`w-8 h-8 rounded-full items-center justify-center ml-4 ${
-          set.completed ? "bg-green-500" : "bg-red-500"
-        }`}
-        onPress={() => onUpdate({ completed: !set.completed })}
-      >
-        {set.completed && <Ionicons name="checkmark" size={16} color="white" />}
-      </TouchableOpacity>
-    </View>
-  );
-};
-
-// ExerciseItem Component
-const ExerciseItem = ({
-  exercise,
-  onAddSet,
-  onUpdateSet,
-  onDeleteExercise,
-}: {
-  exercise: Exercise;
-  onAddSet: () => void;
-  onUpdateSet: (setId: string, updates: Partial<Set>) => void;
-  onDeleteExercise: (exerciseId: string) => void;
-}) => {
-  const completedSets = exercise.sets.filter((set) => set.completed).length;
-
-  return (
-    <View className="bg-white rounded-lg mb-4 mx-4">
-      <View className="flex-row justify-between items-center p-4 border-b border-gray-200">
-        <View className="flex-1">
-          <Text className="text-lg font-semibold text-gray-900">
-            {exercise.name}
-          </Text>
-          <Text className="text-gray-500 text-sm">
-            {exercise.sets.length} sets • {completedSets} completed
-          </Text>
-        </View>
-        <TouchableOpacity
-          onPress={() => onDeleteExercise(exercise.id)}
-          className="w-8 h-8 bg-red-600 rounded items-center justify-center"
-        >
-          <Ionicons name="trash" size={12} color="white" />
-        </TouchableOpacity>
-      </View>
-
-      <View className="bg-gray-50">
-        <Text className="text-gray-600 text-sm font-medium px-4 py-2">
-          Sets
-        </Text>
-
-        {exercise.sets.length === 0 ? (
-          <View className="px-4 py-6">
-            <Text className="text-gray-400 text-center">
-              No sets yet. Add your first set below.
-            </Text>
-          </View>
-        ) : (
-          exercise.sets.map((set, index) => (
-            <SetItem
-              key={set.id}
-              set={set}
-              index={index}
-              onUpdate={(updates) => onUpdateSet(set.id, updates)}
-            />
-          ))
-        )}
-
-        <TouchableOpacity
-          className="py-3 mx-4 mb-4 rounded-lg border border-blue-300 border-dashed bg-blue-50"
-          onPress={onAddSet}
-        >
-          <Text className="text-center text-blue-600 font-medium">
-            + Add Set
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
-};
-
-// AddExerciseModal Component
 const AddExerciseModal = ({
   visible,
   onClose,
@@ -301,9 +154,17 @@ const AddExerciseModal = ({
                   className="flex-row items-center p-4 border-b border-gray-100"
                   onPress={() => onSelectExercise(item)}
                 >
-                  <View className="w-12 h-12 bg-gray-200 rounded-lg mr-4 items-center justify-center">
-                    <Ionicons name="fitness" size={24} color="#6B7280" />
-                  </View>
+                  {item.imageUrl ? (
+                    <Image
+                      source={{ uri: item.imageUrl }}
+                      className="w-20 h-20 rounded-lg mr-6"
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <View className="w-12 h-12 bg-gray-200 rounded-lg mr-4 items-center justify-center">
+                      <Ionicons name="fitness" size={24} color="#6B7280" />
+                    </View>
+                  )}
                   <View className="flex-1">
                     <Text className="text-lg font-semibold text-gray-900 mb-1">
                       {item.name}
@@ -331,29 +192,165 @@ const AddExerciseModal = ({
   );
 };
 
-// Main ActiveWorkout Component
+const SetItem = ({
+  set,
+  index,
+  onUpdate,
+}: {
+  set: any;
+  index: number;
+  onUpdate: (updates: any) => void;
+}) => {
+  return (
+    <View className="flex-row items-center py-3 px-4">
+      <Text className="text-gray-800 w-6 font-medium text-center">
+        {index + 1}
+      </Text>
+
+      <View className="flex-1 flex-row items-center ml-4">
+        <View className="flex-1 items-center">
+          <Text className="text-gray-500 text-xs mb-1">Reps</Text>
+          <TextInput
+            className="text-center text-base w-16 border border-gray-300 rounded text-black bg-white"
+            keyboardType="numeric"
+            value={String(set.reps)}
+            onChangeText={(text) => onUpdate({ reps: text })}
+            style={{
+              height: 40,
+              textAlignVertical: "center",
+              paddingVertical: 0,
+            }}
+          />
+        </View>
+
+        <View className="flex-1 items-center mx-4">
+          <Text className="text-gray-500 text-xs mb-1">Weight (kg)</Text>
+          <TextInput
+            className="text-center text-base w-16 border border-gray-300 rounded text-black bg-white"
+            keyboardType="numeric"
+            value={String(set.weight)}
+            onChangeText={(text) => onUpdate({ weight: text })}
+            style={{
+              height: 40,
+              textAlignVertical: "center",
+              paddingVertical: 0,
+            }}
+          />
+        </View>
+      </View>
+
+      <TouchableOpacity
+        className={`w-8 h-8 rounded-full items-center justify-center ml-4 ${
+          set.completed ? "bg-green-500" : "bg-red-500"
+        }`}
+        onPress={() => onUpdate({ completed: !set.completed })}
+      >
+        {set.completed && <Ionicons name="checkmark" size={16} color="white" />}
+      </TouchableOpacity>
+    </View>
+  );
+};
+
+const ExerciseItem = ({
+  exercise,
+  onAddSet,
+  onUpdateSet,
+  onDeleteExercise,
+}: {
+  exercise: any;
+  onAddSet: () => void;
+  onUpdateSet: (setId: string, updates: any) => void;
+  onDeleteExercise: (exerciseId: string) => void;
+}) => {
+  const completedSets = exercise.sets.filter(
+    (set: any) => set.completed
+  ).length;
+
+  return (
+    <View className="bg-white rounded-lg mb-4 mx-4">
+      <View className="flex-row justify-between items-center p-4 border-b border-gray-200">
+        <View className="flex-1">
+          <Text className="text-lg font-semibold text-gray-900">
+            {exercise.name}
+          </Text>
+          <Text className="text-gray-500 text-sm">
+            {exercise.sets.length} sets • {completedSets} completed
+          </Text>
+        </View>
+        <TouchableOpacity
+          onPress={() => onDeleteExercise(exercise.id)}
+          className="w-8 h-8 bg-red-600 rounded items-center justify-center"
+        >
+          <Ionicons name="trash" size={12} color="white" />
+        </TouchableOpacity>
+      </View>
+
+      <View className="bg-gray-50">
+        <Text className="text-gray-600 text-sm font-medium px-4 py-2">
+          Sets
+        </Text>
+
+        {exercise.sets.length === 0 ? (
+          <View className="px-4 py-6">
+            <Text className="text-gray-400 text-center">
+              No sets yet. Add your first set below.
+            </Text>
+          </View>
+        ) : (
+          exercise.sets.map((set: any, index: number) => (
+            <SetItem
+              key={set.id}
+              set={set}
+              index={index}
+              onUpdate={(updates) => onUpdateSet(set.id, updates)}
+            />
+          ))
+        )}
+
+        <TouchableOpacity
+          className="py-3 mx-4 mb-4 rounded-lg border border-blue-300 border-dashed bg-blue-50"
+          onPress={onAddSet}
+        >
+          <Text className="text-center text-blue-600 font-medium">
+            + Add Set
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+};
+
 export default function ActiveWorkout() {
   const router = useRouter();
   const { userId } = useAuth();
-  const [exercises, setExercises] = useState<Exercise[]>([]);
-  const [timeElapsed, setTimeElapsed] = useState(0);
+  const {
+    state,
+    pauseWorkout,
+    resumeWorkout,
+    addExercise,
+    deleteExercise,
+    addSet,
+    updateSet,
+    clearWorkout,
+    getElapsedSeconds,
+  } = useWorkout();
+
   const [showAddExercise, setShowAddExercise] = useState(false);
   const [showSavingModal, setShowSavingModal] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
+  const [tick, setTick] = useState(0);
 
+  useKeepAwake();
+
+  // Update UI every second
   useEffect(() => {
-    let timer: NodeJS.Timeout | null = null;
+    const interval = setInterval(() => {
+      setTick((prev) => prev + 1);
+    }, 1000);
 
-    if (!isPaused) {
-      timer = setInterval(() => {
-        setTimeElapsed((prev) => prev + 1);
-      }, 1000);
-    }
+    return () => clearInterval(interval);
+  }, []);
 
-    return () => {
-      if (timer) clearInterval(timer);
-    };
-  }, [isPaused]);
+  const elapsed = getElapsedSeconds();
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -363,64 +360,12 @@ export default function ActiveWorkout() {
       .padStart(2, "0")}`;
   };
 
-  const addExercise = (exercise: SanityExercise) => {
-    const newExercise: Exercise = {
-      id: Date.now().toString(),
-      _id: exercise._id,
+  const handleAddExercise = (exercise: SanityExercise) => {
+    addExercise({
       name: exercise.name,
-      sets: [],
-    };
-    setExercises([...exercises, newExercise]);
+      _id: exercise._id,
+    });
     setShowAddExercise(false);
-  };
-
-  const deleteExercise = (exerciseId: string) => {
-    setExercises(exercises.filter((ex) => ex.id !== exerciseId));
-  };
-
-  const addSet = (exerciseId: string) => {
-    setExercises(
-      exercises.map((exercise) => {
-        if (exercise.id === exerciseId) {
-          return {
-            ...exercise,
-            sets: [
-              ...exercise.sets,
-              {
-                id: Date.now().toString(),
-                reps: "", // empty string initially
-                weight: "", // empty string initially
-                completed: false,
-              },
-            ],
-          };
-        }
-        return exercise;
-      })
-    );
-  };
-
-  const updateSet = (
-    exerciseId: string,
-    setId: string,
-    updates: Partial<Set>
-  ) => {
-    setExercises(
-      exercises.map((exercise) => {
-        if (exercise.id === exerciseId) {
-          return {
-            ...exercise,
-            sets: exercise.sets.map((set) => {
-              if (set.id === setId) {
-                return { ...set, ...updates };
-              }
-              return set;
-            }),
-          };
-        }
-        return exercise;
-      })
-    );
   };
 
   const completeWorkout = async () => {
@@ -433,29 +378,22 @@ export default function ActiveWorkout() {
       setShowSavingModal(true);
 
       const workoutData = {
-        exercises: exercises.filter((ex) =>
+        exercises: state.exercises.filter((ex) =>
           ex.sets.some((set) => set.completed)
         ),
-        duration: timeElapsed,
+        duration: elapsed,
         userId,
       };
 
-      // Save to Sanity
-      await saveWorkout(workoutData);
-
+      await saveWorkoutToSanity(workoutData);
       setShowSavingModal(false);
-
-      // Navigate back
+      clearWorkout();
       router.replace("/(tabs)/history");
     } catch (error) {
       console.error("Error saving workout:", error);
       setShowSavingModal(false);
       Alert.alert("Failed to save workout. Please try again.");
     }
-  };
-
-  const handleRest = () => {
-    setIsPaused((prev) => !prev);
   };
 
   const handleEndWorkout = () => {
@@ -467,7 +405,10 @@ export default function ActiveWorkout() {
         {
           text: "End",
           style: "destructive",
-          onPress: () => router.replace("/(tabs)/history"),
+          onPress: () => {
+            clearWorkout();
+            router.replace("/(tabs)/workout");
+          },
         },
       ]
     );
@@ -487,17 +428,17 @@ export default function ActiveWorkout() {
                 Active Workout
               </Text>
               <Text className="text-sm text-gray-500">
-                {formatTime(timeElapsed)}
+                {formatTime(elapsed)}
               </Text>
             </View>
           </View>
           <View className="flex-row">
             <TouchableOpacity
               className="mr-2 px-3 py-1 bg-gray-200 rounded"
-              onPress={handleRest}
+              onPress={state.isPaused ? resumeWorkout : pauseWorkout}
             >
               <Text className="text-gray-700 text-sm font-bold">
-                {isPaused ? "Resume" : "Rest"}
+                {state.isPaused ? "Resume" : "Pause"}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -512,11 +453,11 @@ export default function ActiveWorkout() {
         {/* Exercise Count */}
         <View className="px-4 py-2 bg-white border-b border-gray-200">
           <Text className="text-gray-600 text-sm">
-            {exercises.length} exercises
+            {state.exercises.length} exercises
           </Text>
         </View>
 
-        {exercises.length === 0 ? (
+        {state.exercises.length === 0 ? (
           <View className="flex-1 justify-center items-center px-4">
             <View className="w-16 h-16 bg-gray-200 rounded-full mb-4 items-center justify-center">
               <Ionicons name="fitness" size={32} color="#9CA3AF" />
@@ -530,7 +471,7 @@ export default function ActiveWorkout() {
           </View>
         ) : (
           <ScrollView className="flex-1 py-4">
-            {exercises.map((exercise) => (
+            {state.exercises.map((exercise) => (
               <ExerciseItem
                 key={exercise.id}
                 exercise={exercise}
@@ -554,7 +495,7 @@ export default function ActiveWorkout() {
             <Text className="text-white font-semibold ml-2">Add Exercise</Text>
           </TouchableOpacity>
 
-          {exercises.length > 0 && (
+          {state.exercises.length > 0 && (
             <TouchableOpacity
               className="bg-green-500 py-4 rounded-lg flex-row items-center justify-center"
               onPress={completeWorkout}
@@ -569,7 +510,7 @@ export default function ActiveWorkout() {
       <AddExerciseModal
         visible={showAddExercise}
         onClose={() => setShowAddExercise(false)}
-        onSelectExercise={addExercise}
+        onSelectExercise={handleAddExercise}
       />
 
       {/* Saving Modal */}

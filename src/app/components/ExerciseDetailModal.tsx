@@ -57,6 +57,7 @@ export default function ExerciseDetailModal({
             <Image
               source={{ uri: exercise.imageUrl }}
               className="w-full h-64"
+              resizeMode="contain"
             />
           )}
 
@@ -68,7 +69,7 @@ export default function ExerciseDetailModal({
                 exercise.difficulty
               )}`}
             >
-              <Text className="font-semibold text-white">
+              <Text className="font-semibold text-black">
                 {exercise.difficulty.toUpperCase()}
               </Text>
             </View>

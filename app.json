@@ -1,6 +1,6 @@
 {
   "expo": {
-    "scheme": "acme",
+    "scheme": "fitapp",
     "userInterfaceStyle": "automatic",
     "orientation": "default",
     "web": {
@@ -12,7 +12,10 @@
         {
           "origin": "https://n"
         }
-      ]
+      ],
+      "expo-web-browser",
+      "expo-font",
+      "expo-secure-store"
     ],
     "name": "fit-app",
     "slug": "fit-app",
@@ -26,6 +29,13 @@
     },
     "android": {
       "package": "com.siddharth.fitapp"
-    }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/0ff4334d-c46c-448c-9ba8-6c374cf93f3a"
+    },
+    "ios": {}
   }
 }

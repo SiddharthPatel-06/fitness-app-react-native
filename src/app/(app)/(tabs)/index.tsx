@@ -1,5 +1,5 @@
 // app/(app)/(tabs)/index.tsx
-import { Link, useRouter } from "expo-router";
+import { Link, router, useRouter } from "expo-router";
 import React, { useState, useEffect } from "react";
 import {
   SafeAreaView,
@@ -12,6 +12,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth, useUser } from "@clerk/clerk-expo";
 import { client } from "../../../lib/sanity/client";
+import { useWorkout } from "../../../context/WorkoutContext";
 
 // Types
 type WorkoutStats = {
@@ -30,6 +31,7 @@ type LastWorkout = {
 export default function HomeScreen() {
   const { signOut } = useAuth();
   const { user } = useUser();
+  const { startWorkout } = useWorkout();
 
   const [userName, setUserName] = useState("");
   const [stats, setStats] = useState<WorkoutStats>({
@@ -105,6 +107,11 @@ export default function HomeScreen() {
     }
   };
 
+  const handleStartWorkout = () => {
+    startWorkout();
+    router.push("/active-workout");
+  };
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -153,6 +160,7 @@ export default function HomeScreen() {
           lastWorkout={lastWorkout}
           formatTime={formatTime}
           formatWorkoutDate={formatWorkoutDate}
+          onStartWorkout={handleStartWorkout}
         />
       </ScrollView>
       <BottomNavigation />
@@ -162,7 +170,7 @@ export default function HomeScreen() {
 
 function Header({ userName }: { userName: string }) {
   return (
-    <View className="px-6 pt-6 pb-4 bg-gray-50">
+    <View className="px-6 py-2 bg-gray-50">
       <Text className="text-lg font-bold text-gray-500">Welcome back,</Text>
       <Text className="text-2xl font-bold text-gray-900">{userName}! 💪</Text>
     </View>
@@ -174,11 +182,13 @@ function Content({
   lastWorkout,
   formatTime,
   formatWorkoutDate,
+  onStartWorkout,
 }: {
   stats: WorkoutStats;
   lastWorkout: LastWorkout | null;
   formatTime: (seconds: number) => string;
   formatWorkoutDate: (dateString: string) => string;
+  onStartWorkout: () => void;
 }) {
   const router = useRouter();
 
@@ -230,7 +240,7 @@ function Content({
         <View className="flex-row gap-4 mb-4">
           <TouchableOpacity
             className="flex-1 bg-blue-600 rounded-xl p-4"
-            onPress={() => router.push("/active-workout")}
+            onPress={onStartWorkout}
           >
             <View className="flex-row items-center justify-between">
               {/* Left content */}

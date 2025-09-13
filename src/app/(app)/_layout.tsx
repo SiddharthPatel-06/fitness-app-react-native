@@ -2,6 +2,7 @@
 import { useAuth } from "@clerk/clerk-expo";
 import { Stack } from "expo-router";
 import { ActivityIndicator, View } from "react-native";
+import { WorkoutProvider } from "../../context/WorkoutContext";
 
 const Layout = () => {
   const { isSignedIn, isLoaded, userId, sessionId, getToken } = useAuth();
@@ -16,17 +17,22 @@ const Layout = () => {
     );
   }
   return (
-    <Stack>
-      <Stack.Protected guard={isSignedIn}>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="active-workout" options={{ headerShown: false }} />
-      </Stack.Protected>
+    <WorkoutProvider>
+      <Stack>
+        <Stack.Protected guard={isSignedIn}>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="active-workout"
+            options={{ headerShown: false }}
+          />
+        </Stack.Protected>
 
-      <Stack.Protected guard={!isSignedIn}>
-        <Stack.Screen name="sign-in" options={{ headerShown: false }} />
-        <Stack.Screen name="sign-up" options={{ headerShown: false }} />
-      </Stack.Protected>
-    </Stack>
+        <Stack.Protected guard={!isSignedIn}>
+          <Stack.Screen name="sign-in" options={{ headerShown: false }} />
+          <Stack.Screen name="sign-up" options={{ headerShown: false }} />
+        </Stack.Protected>
+      </Stack>
+    </WorkoutProvider>
   );
 };
 

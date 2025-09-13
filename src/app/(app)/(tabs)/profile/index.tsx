@@ -82,7 +82,7 @@ export default function ProfilePage() {
         {/* User Card */}
         <View className="bg-white rounded-xl shadow p-4 flex-row items-center mb-4">
           <View className="w-16 h-16 rounded-full bg-gray-200 overflow-hidden items-center justify-center mr-4">
-            <Ionicons name="person-circle-outline" size={64} color="#2563eb" />
+            <Ionicons name="person-circle-outline" size={54} color="#2563eb" />
           </View>
           <View>
             <Text className="text-lg font-semibold">

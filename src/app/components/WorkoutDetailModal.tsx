@@ -8,7 +8,7 @@ import {
   Alert,
   BackHandler,
 } from "react-native";
-import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Feather, Ionicons } from "@expo/vector-icons";
 import { client } from "../../lib/sanity/client";
 import { useFocusEffect } from "@react-navigation/native";
 
@@ -162,37 +162,33 @@ export default function WorkoutDetailModal({
               </TouchableOpacity>
             </View>
 
-            <View className="space-y-2">
+            <View className="space-y-2 pt-2 flex flex-col gap-2">
               <View className="flex-row items-center">
-                <Feather name="calendar" size={16} color="#4B5563" />
+                <Ionicons name="calendar-outline" size={20} color="#6B7280" />
                 <Text className="ml-2 text-gray-700">
                   {formatFullDate(workout.date)}
                 </Text>
               </View>
               <View className="flex-row items-center">
-                <Feather name="clock" size={16} color="#4B5563" />
+                <Ionicons name="time-outline" size={20} color="#6B7280" />
                 <Text className="ml-2 text-gray-700">
                   {formatDuration(workout.duration)}
                 </Text>
               </View>
               <View className="flex-row items-center">
-                <Feather name="heart" size={16} color="#4B5563" />
+                <Ionicons name="fitness-outline" size={18} color="#6B7280" />
                 <Text className="ml-2 text-gray-700">
                   {exercisesCount} exercises
                 </Text>
               </View>
               <View className="flex-row items-center">
-                <Feather name="bar-chart-2" size={16} color="#4B5563" />
+                <Ionicons name="bar-chart-outline" size={20} color="#6B7280" />
                 <Text className="ml-2 text-gray-700">
                   {totalSets} total sets
                 </Text>
               </View>
               <View className="flex-row items-center">
-                <MaterialCommunityIcons
-                  name="dumbbell"
-                  size={16}
-                  color="#4B5563"
-                />
+                <Ionicons name="barbell-outline" size={20} color="#6B7280" />
                 <Text className="ml-2 text-gray-700">
                   {totalVolume.toLocaleString()} kg total volume
                 </Text>
@@ -212,11 +208,11 @@ export default function WorkoutDetailModal({
                 className="bg-white rounded-lg p-4 mb-4 shadow border border-gray-100"
               >
                 <View className="flex-row justify-between items-center mb-2">
-                  <Text className="text-lg font-semibold">
+                  <Text className="text-lg font-bold">
                     {entry.exercise.name}
                   </Text>
-                  <View className="w-7 h-7 bg-blue-50 rounded-full items-center justify-center">
-                    <Text className="text-blue-600 text-sm font-semibold">
+                  <View className="w-9 h-9 bg-blue-50 rounded-full items-center justify-center">
+                    <Text className="text-blue-600 text-sm font-bold">
                       {idx + 1}
                     </Text>
                   </View>
@@ -248,7 +244,7 @@ export default function WorkoutDetailModal({
                   ))}
                 </View>
 
-                <View className="flex-row justify-between mt-2">
+                <View className="flex-row justify-between mt-4">
                   <Text className="text-sm text-gray-500">
                     Exercise Volume:{" "}
                   </Text>

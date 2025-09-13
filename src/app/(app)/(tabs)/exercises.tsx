@@ -112,11 +112,22 @@ export default function Exercises() {
       <Text className="text-3xl pl-4 font-bold mb-4">Exercise Library</Text>
 
       {/* Search Bar */}
-      <View className="flex-row items-center mb-4 bg-gray-200 rounded-xl px-4 py-1">
+      {/* <View className="flex-row items-center mb-4 bg-gray-200 rounded-xl px-4 py-1">
         <Feather name="search" size={20} color="gray" />
         <TextInput
           placeholder="Search exercises..."
           className="ml-2 flex-1"
+          value={query}
+          onChangeText={handleSearch}
+        />
+      </View> */}
+
+      <View className="bg-gray-100 rounded-lg px-4 py-3 mb-4 flex-row items-center">
+        <Ionicons name="search" size={20} color="#9CA3AF" />
+        <TextInput
+          placeholder="Search exercises..."
+          className="ml-2 flex-1 text-gray-800"
+          placeholderTextColor="#9CA3AF"
           value={query}
           onChangeText={handleSearch}
         />

@@ -1,3 +1,4 @@
+// app/(
 import { Tabs } from "expo-router";
 import AntDesign from "@expo/vector-icons/AntDesign";
 
@@ -46,7 +47,7 @@ const Layout = () => {
         }}
       />
 
-      <Tabs.Screen
+      {/* <Tabs.Screen
         name="active-workout"
         options={{
           title: "Active Workout",
@@ -56,7 +57,7 @@ const Layout = () => {
             display: "none",
           },
         }}
-      />
+      /> */}
 
       <Tabs.Screen
         name="history"
